@@ -1,0 +1,13 @@
+{
+    "autodeskProduct": "Fusion",
+    "type": "addin",
+    "id": "FusionMCP",
+    "author": "prim.design",
+    "description": {
+        "": "Open-source MCP bridge for controlling Fusion 360 from Claude"
+    },
+    "version": "0.1.0",
+    "runOnStartup": true,
+    "supportedOS": "windows|mac",
+    "editEnabled": true
+}
