@@ -1,11 +1,11 @@
 # fusion-mcp
 
-Open-source MCP server for controlling Autodesk Fusion 360 from Claude. No closed-source binaries, no middleman processes — just Python.
+Open-source MCP server for controlling Autodesk Fusion 360 from any AI agent or MCP client. No closed-source binaries, no middleman processes — just Python.
 
 ## Architecture
 
 ```
-Claude (Code/Desktop) ──stdio──▶ MCP Server (Python)
+MCP Client (any AI agent) ──stdio──▶ MCP Server (Python)
                                       │
                                  TCP localhost:52361
                                       │
@@ -44,13 +44,10 @@ Two components:
 ### 1. Install the MCP server
 
 ```bash
-pip install -e /path/to/fusion-mcp
-```
-
-Or with uv:
-
-```bash
-uv pip install -e /path/to/fusion-mcp
+cd /path/to/fusion-mcp
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e .
 ```
 
 ### 2. Install the Fusion 360 add-in
@@ -73,27 +70,29 @@ Then in Fusion 360:
 3. Find **FusionMCP** under "My Add-Ins"
 4. Click **Run** (check "Run on Startup" for auto-start)
 
-### 3. Configure Claude Code
+### 3. Configure your MCP client
 
+**Claude Code:**
 ```bash
-claude mcp add fusion-mcp -- fusion-mcp
+claude mcp add fusion-mcp -- /path/to/fusion-mcp/.venv/bin/fusion-mcp
 ```
 
-Or for Claude Desktop, add to `claude_desktop_config.json`:
-
+**Claude Desktop** (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
     "fusion-mcp": {
-      "command": "fusion-mcp"
+      "command": "/path/to/fusion-mcp/.venv/bin/fusion-mcp"
     }
   }
 }
 ```
 
+**Any MCP client:** Run the `fusion-mcp` binary from the venv as a stdio MCP server.
+
 ## Usage
 
-Once configured, Claude can directly control Fusion 360:
+Once configured, your AI agent can directly control Fusion 360:
 
 > "Create a box with rounded edges, 50mm x 30mm x 20mm, with 2mm fillets"
 
