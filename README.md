@@ -22,7 +22,7 @@ uv pip install -e .
 git clone https://github.com/prim-design/fusion-mcp.git
 cd fusion-mcp
 python3 -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -e .
 ```
 
