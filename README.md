@@ -1,6 +1,6 @@
 # fusion-mcp
 
-Open-source MCP server for controlling Autodesk Fusion 360 from any AI agent. No closed-source binaries — just Python.
+Open-source MCP server for controlling Autodesk Fusion 360 from any AI agent. just Python.
 
 ```
 MCP Client ──stdio──▶ MCP Server (Python) ──TCP──▶ Fusion 360 Add-in ──▶ Fusion API
