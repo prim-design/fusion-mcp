@@ -14,7 +14,7 @@ MCP Client ──stdio──▶ MCP Server (Python) ──TCP──▶ Fusion 36
 ```bash
 git clone https://github.com/prim-design/fusion-mcp.git
 cd fusion-mcp
-uv venv && uv pip install -e .
+uv pip install -e .
 ```
 
 **With pip:**
