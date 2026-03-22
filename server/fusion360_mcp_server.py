@@ -10,11 +10,12 @@ components, joints (all 7 types), rigid groups, inspection, export,
 and an execute_python escape hatch for full API access.
 """
 
+import base64
 import json
 import socket
 import time
 import uuid
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Image
 
 HOST = "127.0.0.1"
 PORT = 52361
@@ -636,6 +637,39 @@ def measure(target: str = "body", body_index: int = -1, edge_index: int = None, 
 def check_interference() -> dict:
     """Check for overlapping components (bounding box collision detection)."""
     return send_command("check_interference", {})
+
+
+@mcp.tool()
+def screenshot(
+    width: int = 1920,
+    height: int = 1080,
+    view: str = None,
+    eye_x: float = None, eye_y: float = None, eye_z: float = None,
+    target_x: float = None, target_y: float = None, target_z: float = None,
+    fit: bool = True,
+) -> Image:
+    """
+    Capture a screenshot of the current Fusion 360 viewport from any angle.
+    Returns the image directly so you can see the current state of the design.
+
+    Args:
+        width: Image width in pixels (default 1920).
+        height: Image height in pixels (default 1080).
+        view: Preset view — "front", "back", "top", "bottom", "left", "right", "iso", "iso_back".
+              If None, uses the current camera angle.
+        eye_x/y/z: Custom camera eye position (cm). Overrides view preset.
+        target_x/y/z: Custom camera target/look-at position (cm). Default (0,0,0).
+        fit: Fit all geometry in view after setting angle (default True).
+    """
+    result = send_command("screenshot", {
+        "width": width, "height": height,
+        "view": view,
+        "eye_x": eye_x, "eye_y": eye_y, "eye_z": eye_z,
+        "target_x": target_x, "target_y": target_y, "target_z": target_z,
+        "fit": fit,
+    })
+    image_data = base64.b64decode(result["image_base64"])
+    return Image(data=image_data, format="png")
 
 
 @mcp.tool()

@@ -1244,6 +1244,79 @@ def _handle_fit_view(params, design):
     return {"fitted": True}
 
 
+def _handle_screenshot(params, design):
+    import tempfile
+    import base64
+    import os
+
+    width = params.get("width", 1920)
+    height = params.get("height", 1080)
+    view = params.get("view")
+    fit = params.get("fit", True)
+
+    viewport = app.activeViewport
+    camera = viewport.camera
+
+    # Preset views: eye positions for common angles (looking at origin)
+    d = 50  # default distance from origin
+    VIEW_PRESETS = {
+        "front":    (0,  0,  d),
+        "back":     (0,  0, -d),
+        "top":      (0,  d,  0),
+        "bottom":   (0, -d,  0),
+        "left":     (-d, 0,  0),
+        "right":    (d,  0,  0),
+        "iso":      (d,  d,  d),
+        "iso_back": (-d, d, -d),
+    }
+
+    # Apply custom eye position or view preset
+    eye_x = params.get("eye_x")
+    if eye_x is not None:
+        # Custom camera position
+        eye = adsk.core.Point3D.create(
+            eye_x,
+            params.get("eye_y", 0),
+            params.get("eye_z", 0),
+        )
+        target = adsk.core.Point3D.create(
+            params.get("target_x", 0),
+            params.get("target_y", 0),
+            params.get("target_z", 0),
+        )
+        camera.eye = eye
+        camera.target = target
+        camera.upVector = adsk.core.Vector3D.create(0, 1, 0)
+        camera.isSmoothTransition = False
+        viewport.camera = camera
+    elif view and view.lower() in VIEW_PRESETS:
+        ex, ey, ez = VIEW_PRESETS[view.lower()]
+        camera.eye = adsk.core.Point3D.create(ex, ey, ez)
+        camera.target = adsk.core.Point3D.create(0, 0, 0)
+        camera.upVector = adsk.core.Vector3D.create(0, 1, 0)
+        camera.isSmoothTransition = False
+        viewport.camera = camera
+
+    if fit:
+        viewport.fit()
+
+    # Save viewport to a temp PNG file
+    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+
+    try:
+        viewport.saveAsImageFile(tmp_path, width, height)
+        with open(tmp_path, "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+        return {"image_base64": image_b64, "width": width, "height": height}
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except:
+            pass
+
+
 # ---------------------------------------------------------------------------
 # EXPORT / IMPORT HANDLERS
 # ---------------------------------------------------------------------------
@@ -1429,6 +1502,7 @@ _HANDLERS = {
     "measure": _handle_measure,
     "check_interference": _handle_check_interference,
     "fit_view": _handle_fit_view,
+    "screenshot": _handle_screenshot,
     # Export / Import
     "export_stl": _handle_export_stl,
     "export_step": _handle_export_step,
