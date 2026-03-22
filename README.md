@@ -10,6 +10,14 @@ MCP Client ──stdio──▶ MCP Server (Python) ──TCP──▶ Fusion 36
 
 ### 1. Clone and install
 
+**With uv (recommended):**
+```bash
+git clone https://github.com/prim-design/fusion-mcp.git
+cd fusion-mcp
+uv venv && uv pip install -e .
+```
+
+**With pip:**
 ```bash
 git clone https://github.com/prim-design/fusion-mcp.git
 cd fusion-mcp
