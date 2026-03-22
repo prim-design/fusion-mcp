@@ -1,54 +1,24 @@
 # fusion-mcp
 
-Open-source MCP server for controlling Autodesk Fusion 360 from any AI agent or MCP client. No closed-source binaries, no middleman processes — just Python.
-
-## Architecture
+Open-source MCP server for controlling Autodesk Fusion 360 from any AI agent. No closed-source binaries — just Python.
 
 ```
-MCP Client (any AI agent) ──stdio──▶ MCP Server (Python)
-                                      │
-                                 TCP localhost:52361
-                                      │
-                                      ▼
-                            Fusion 360 Add-in
-                                      │
-                               CustomEvent dispatch
-                                      │
-                                      ▼
-                                Main thread → Fusion API
+MCP Client ──stdio──▶ MCP Server (Python) ──TCP──▶ Fusion 360 Add-in ──▶ Fusion API
 ```
-
-Two components:
-1. **MCP Server** (`server/`) — FastMCP server with 40+ curated tools, runs as a standard MCP stdio server
-2. **Fusion Add-in** (`addin/`) — TCP socket server inside Fusion 360, executes commands on the main thread
-
-## Tools
-
-| Category | Tools |
-|----------|-------|
-| **Sketch** | `create_sketch`, `finish_sketch`, `draw_line`, `draw_rectangle`, `draw_circle`, `draw_arc`, `draw_polygon`, `draw_spline`, `draw_slot` |
-| **3D Features** | `extrude`, `revolve`, `sweep`, `loft` |
-| **Modifications** | `fillet`, `chamfer`, `shell`, `draft` |
-| **Patterns** | `pattern_rectangular`, `pattern_circular`, `mirror` |
-| **Booleans** | `combine`, `split_body` |
-| **Components** | `create_component`, `list_components`, `delete_component`, `move_component`, `rotate_component` |
-| **Joints** | `create_joint` (rigid/revolute/slider/cylindrical/pin_slot/planar/ball), `set_joint_limits`, `drive_joint`, `list_joints` |
-| **Rigid Groups** | `create_rigid_group`, `list_rigid_groups`, `delete_rigid_group` |
-| **Inspection** | `get_design_info`, `get_body_info`, `measure`, `check_interference`, `fit_view` |
-| **Export/Import** | `export_stl`, `export_step`, `export_3mf`, `import_mesh` |
-| **Utility** | `undo`, `delete_body`, `delete_sketch`, `batch` |
-| **Escape Hatch** | `execute_python` — run arbitrary Python inside Fusion with full API access |
 
 ## Setup
 
-### 1. Install the MCP server
+### 1. Clone and install
 
 ```bash
-cd /path/to/fusion-mcp
+git clone https://github.com/prim-design/fusion-mcp.git
+cd fusion-mcp
 python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e .
 ```
+
+Requires Python 3.10+.
 
 ### 2. Install the Fusion 360 add-in
 
@@ -56,28 +26,24 @@ Copy the `addin/` folder to Fusion's add-ins directory:
 
 **macOS:**
 ```bash
-cp -r addin/ ~/Library/Application\ Support/Autodesk/Autodesk\ Fusion\ 360/API/AddIns/FusionMCP
+cp -r addin/ "$HOME/Library/Application Support/Autodesk/Autodesk Fusion 360/API/AddIns/FusionMCP"
 ```
 
 **Windows:**
-```
-copy addin %APPDATA%\Autodesk\Autodesk Fusion 360\API\AddIns\FusionMCP
+```powershell
+xcopy /E addin "%APPDATA%\Autodesk\Autodesk Fusion 360\API\AddIns\FusionMCP\"
 ```
 
-Then in Fusion 360:
-1. Press `Shift+S` to open Scripts and Add-Ins
-2. Go to the **Add-Ins** tab
-3. Find **FusionMCP** under "My Add-Ins"
-4. Click **Run** (check "Run on Startup" for auto-start)
+Then in Fusion 360: **Shift+S** → Add-Ins → select **FusionMCP** → **Run** (optionally check "Run on Startup").
 
-### 3. Configure your MCP client
+### 3. Connect your MCP client
 
 **Claude Code:**
 ```bash
 claude mcp add fusion-mcp -- /path/to/fusion-mcp/.venv/bin/fusion-mcp
 ```
 
-**Claude Desktop** (`claude_desktop_config.json`):
+**Claude Desktop** — add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
@@ -88,31 +54,47 @@ claude mcp add fusion-mcp -- /path/to/fusion-mcp/.venv/bin/fusion-mcp
 }
 ```
 
-**Any MCP client:** Run the `fusion-mcp` binary from the venv as a stdio MCP server.
+Works with any MCP client — run `.venv/bin/fusion-mcp` as a stdio server.
 
-## Usage
+## Tools (49)
 
-Once configured, your AI agent can directly control Fusion 360:
+| Category | Tools |
+|----------|-------|
+| **Sketch** | `create_sketch` `finish_sketch` `draw_line` `draw_rectangle` `draw_circle` `draw_arc` `draw_polygon` `draw_spline` `draw_slot` |
+| **3D Features** | `extrude` `revolve` `sweep` `loft` |
+| **Modifications** | `fillet` `chamfer` `shell` `draft` |
+| **Patterns** | `pattern_rectangular` `pattern_circular` `mirror` |
+| **Booleans** | `combine` `split_body` |
+| **Components** | `create_component` `list_components` `delete_component` `move_component` `rotate_component` |
+| **Joints** | `create_joint` (all 7 types) `set_joint_limits` `drive_joint` `list_joints` |
+| **Rigid Groups** | `create_rigid_group` `list_rigid_groups` `delete_rigid_group` |
+| **Inspection** | `get_design_info` `get_body_info` `measure` `check_interference` `fit_view` `screenshot` |
+| **Export/Import** | `export_stl` `export_step` `export_3mf` `import_mesh` |
+| **Utility** | `undo` `delete_body` `delete_sketch` `batch` |
+| **Escape Hatch** | `execute_python` — run arbitrary Python inside Fusion with full API access |
 
-> "Create a box with rounded edges, 50mm x 30mm x 20mm, with 2mm fillets"
+### Joint types
 
-> "Add a revolute joint between the arm and the base component, with ±90° limits"
+`create_joint` supports all 7 Fusion joint types: **rigid**, **revolute**, **slider**, **cylindrical**, **pin_slot**, **planar**, **ball**. Uses as-built joints by default (components stay in place).
 
-> "Export the design as STEP"
+### Screenshot
 
-All lengths are in **centimeters** (Fusion's internal unit). The tools accept cm and handle conversion automatically.
+`screenshot` captures the viewport as a PNG image returned directly to the AI. Supports preset views (`front`, `back`, `top`, `bottom`, `left`, `right`, `iso`) and custom camera positions via `eye_x/y/z` + `target_x/y/z`.
 
-## Important Notes
+## Important notes
 
-- **Units**: All lengths in cm, all angles in degrees
-- **Z-negation**: On XZ plane, sketch +Y maps to world -Z. On YZ plane, sketch +X maps to world -Z.
-- **Thread safety**: The add-in uses Fusion's CustomEvent system to dispatch all API calls to the main thread
-- **Joints**: Uses as-built joints by default (components stay in their current positions)
-- **Escape hatch**: Use `execute_python` for any operation not covered by the curated tools
+- **Units**: All lengths in **cm**, all angles in **degrees**
+- **Z-negation gotcha**: On XZ plane, sketch +Y = world -Z. On YZ plane, sketch +X = world -Z.
+- **Thread safety**: The add-in dispatches all API calls to Fusion's main thread via CustomEvent
+- **Escape hatch**: `execute_python` runs arbitrary Python inside Fusion for anything not covered by curated tools
+
+## How it works
+
+The MCP server (`server/`) runs as a stdio process your AI agent connects to. It forwards commands over a TCP socket to the Fusion 360 add-in (`addin/`), which runs inside Fusion and executes API calls on the main thread using Fusion's CustomEvent system for thread safety.
 
 ## Credits
 
-Inspired by [ClaudeFusion360MCP](https://github.com/rahayesj/ClaudeFusion360MCP) (tool design, spatial awareness docs) and analysis of [Fusion-360-MCP-Server](https://github.com/AuraFriday/Fusion-360-MCP-Server) (thread-safe dispatch pattern).
+Inspired by [ClaudeFusion360MCP](https://github.com/rahayesj/ClaudeFusion360MCP) and [Fusion-360-MCP-Server](https://github.com/AuraFriday/Fusion-360-MCP-Server).
 
 ## License
 
