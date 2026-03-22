@@ -92,10 +92,6 @@ Works with any MCP client — run `.venv/bin/fusion-mcp` as a stdio server.
 
 The MCP server (`server/`) runs as a stdio process your AI agent connects to. It forwards commands over a TCP socket to the Fusion 360 add-in (`addin/`), which runs inside Fusion and executes API calls on the main thread using Fusion's CustomEvent system for thread safety.
 
-## Credits
-
-Inspired by [ClaudeFusion360MCP](https://github.com/rahayesj/ClaudeFusion360MCP) and [Fusion-360-MCP-Server](https://github.com/AuraFriday/Fusion-360-MCP-Server).
-
 ## License
 
 MIT
