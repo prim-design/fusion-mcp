@@ -442,6 +442,23 @@ def delete_component(name: str = None, index: int = None) -> dict:
 
 
 @mcp.tool()
+def rename(target: str, new_name: str, target_type: str = "component", index: int = None) -> dict:
+    """
+    Rename a component, body, sketch, or joint.
+
+    Args:
+        target: Current name or index of the item to rename.
+        new_name: The new name.
+        target_type: What to rename — "component", "body", "sketch", or "joint".
+        index: Use index instead of name to identify the target.
+    """
+    return send_command("rename", {
+        "target": target, "new_name": new_name,
+        "target_type": target_type, "index": index,
+    })
+
+
+@mcp.tool()
 def move_component(
     x: float = 0, y: float = 0, z: float = 0,
     name: str = None, index: int = None,

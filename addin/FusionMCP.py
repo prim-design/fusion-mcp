@@ -835,6 +835,76 @@ def _handle_delete_component(params, design):
     return {"deleted": True}
 
 
+def _handle_rename(params, design):
+    rootComp = design.rootComponent
+    target_type = params.get("target_type", "component").lower()
+    new_name = params["new_name"]
+    target = params.get("target")
+    index = params.get("index")
+
+    if target_type == "component":
+        if index is not None:
+            occ = rootComp.allOccurrences.item(int(index))
+        else:
+            occ = _resolve_occurrence(target, design)
+        old_name = occ.component.name
+        occ.component.name = new_name
+        return {"old_name": old_name, "new_name": new_name, "type": "component"}
+
+    elif target_type == "body":
+        idx = int(index) if index is not None else int(target) if target.isdigit() else -1
+        if idx == -1:
+            # Search by name
+            for i in range(rootComp.bRepBodies.count):
+                if rootComp.bRepBodies.item(i).name == target:
+                    idx = i
+                    break
+        if idx == -1:
+            raise ValueError(f"Body not found: {target}")
+        body = rootComp.bRepBodies.item(idx)
+        old_name = body.name
+        body.name = new_name
+        return {"old_name": old_name, "new_name": new_name, "type": "body"}
+
+    elif target_type == "sketch":
+        idx = int(index) if index is not None else int(target) if target.isdigit() else -1
+        if idx == -1:
+            for i in range(rootComp.sketches.count):
+                if rootComp.sketches.item(i).name == target:
+                    idx = i
+                    break
+        if idx == -1:
+            raise ValueError(f"Sketch not found: {target}")
+        sketch = rootComp.sketches.item(idx)
+        old_name = sketch.name
+        sketch.name = new_name
+        return {"old_name": old_name, "new_name": new_name, "type": "sketch"}
+
+    elif target_type == "joint":
+        joint = None
+        # Search as-built joints
+        for i in range(rootComp.asBuiltJoints.count):
+            j = rootComp.asBuiltJoints.item(i)
+            if j.name == target or (index is not None and i == int(index)):
+                joint = j
+                break
+        # Search standard joints
+        if not joint:
+            for i in range(rootComp.joints.count):
+                j = rootComp.joints.item(i)
+                if j.name == target or (index is not None and i == int(index)):
+                    joint = j
+                    break
+        if not joint:
+            raise ValueError(f"Joint not found: {target}")
+        old_name = joint.name
+        joint.name = new_name
+        return {"old_name": old_name, "new_name": new_name, "type": "joint"}
+
+    else:
+        raise ValueError(f"Invalid target_type: {target_type}. Use component, body, sketch, or joint.")
+
+
 def _handle_move_component(params, design):
     occ = None
     if params.get("name"):
@@ -1485,6 +1555,7 @@ _HANDLERS = {
     "create_component": _handle_create_component,
     "list_components": _handle_list_components,
     "delete_component": _handle_delete_component,
+    "rename": _handle_rename,
     "move_component": _handle_move_component,
     "rotate_component": _handle_rotate_component,
     # Joints
