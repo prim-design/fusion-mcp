@@ -17,12 +17,21 @@ cd fusion-mcp
 uv pip install -e .
 ```
 
-**With pip:**
+**With pip (macOS/Linux):**
 ```bash
 git clone https://github.com/prim-design/fusion-mcp.git
 cd fusion-mcp
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -e .
+```
+
+**With pip (Windows):**
+```powershell
+git clone https://github.com/prim-design/fusion-mcp.git
+cd fusion-mcp
+python -m venv .venv
+.venv\Scripts\activate
 pip install -e .
 ```
 
