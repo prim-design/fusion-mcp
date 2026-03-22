@@ -73,7 +73,7 @@ claude mcp add fusion-mcp -- /path/to/fusion-mcp/.venv/bin/fusion-mcp
 
 Works with any MCP client — run `.venv/bin/fusion-mcp` as a stdio server.
 
-## Tools (49)
+## Tools (51)
 
 | Category | Tools |
 |----------|-------|
@@ -82,7 +82,7 @@ Works with any MCP client — run `.venv/bin/fusion-mcp` as a stdio server.
 | **Modifications** | `fillet` `chamfer` `shell` `draft` |
 | **Patterns** | `pattern_rectangular` `pattern_circular` `mirror` |
 | **Booleans** | `combine` `split_body` |
-| **Components** | `create_component` `list_components` `delete_component` `move_component` `rotate_component` |
+| **Components** | `create_component` `list_components` `delete_component` `move_component` `rotate_component` `rename` |
 | **Joints** | `create_joint` (all 7 types) `set_joint_limits` `drive_joint` `list_joints` |
 | **Rigid Groups** | `create_rigid_group` `list_rigid_groups` `delete_rigid_group` |
 | **Inspection** | `get_design_info` `get_body_info` `measure` `check_interference` `fit_view` `screenshot` |
