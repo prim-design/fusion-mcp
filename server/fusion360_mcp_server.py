@@ -514,9 +514,14 @@ def create_joint(
     occurrence2: str,
     joint_type: str = "rigid",
     axis: str = "Z",
+    name: str = None,
     angle: float = 0,
     offset: float = 0,
     flip: bool = False,
+    min_angle: float = None,
+    max_angle: float = None,
+    min_distance: float = None,
+    max_distance: float = None,
 ) -> dict:
     """
     Create an as-built joint between two components (components stay in place).
@@ -526,14 +531,21 @@ def create_joint(
         occurrence2: Name or index of second component.
         joint_type: One of: rigid, revolute, slider, cylindrical, pin_slot, planar, ball.
         axis: Primary joint axis — "X", "Y", or "Z".
+        name: Optional name for the joint.
         angle: Initial rotation value in degrees (for revolute/cylindrical).
         offset: Initial slide value in cm (for slider/cylindrical).
         flip: Flip the joint direction.
+        min_angle: Min rotation limit in degrees.
+        max_angle: Max rotation limit in degrees.
+        min_distance: Min slide limit in cm.
+        max_distance: Max slide limit in cm.
     """
     return send_command("create_joint", {
         "occurrence1": occurrence1, "occurrence2": occurrence2,
-        "joint_type": joint_type, "axis": axis,
+        "joint_type": joint_type, "axis": axis, "name": name,
         "angle": angle, "offset": offset, "flip": flip,
+        "min_angle": min_angle, "max_angle": max_angle,
+        "min_distance": min_distance, "max_distance": max_distance,
     })
 
 

@@ -975,8 +975,13 @@ def _handle_create_joint(params, design):
     axis_str = params.get("axis", "Z").upper()
 
     # Create as-built joint (components stay in place)
+    # geometry is required: None for rigid joints, origin point for others
     asBuiltJoints = rootComp.asBuiltJoints
-    abInput = asBuiltJoints.createInput(occ1, occ2)
+    if joint_type_str == "rigid":
+        geo = None
+    else:
+        geo = adsk.fusion.JointGeometry.createByPoint(rootComp.originConstructionPoint)
+    abInput = asBuiltJoints.createInput(occ1, occ2, geo)
 
     JD = adsk.fusion.JointDirections
     axis_map = {
@@ -1011,6 +1016,11 @@ def _handle_create_joint(params, design):
 
     joint = asBuiltJoints.add(abInput)
 
+    # Set name if provided
+    joint_name = params.get("name")
+    if joint_name:
+        joint.name = joint_name
+
     # Set initial angle/offset if provided
     angle = params.get("angle", 0)
     offset = params.get("offset", 0)
@@ -1024,6 +1034,26 @@ def _handle_create_joint(params, design):
         motion = joint.jointMotion
         if hasattr(motion, "slideValue"):
             motion.slideValue = offset
+
+    # Set limits inline if provided
+    motion = joint.jointMotion
+    if hasattr(motion, "rotationLimits"):
+        limits = motion.rotationLimits
+        if params.get("min_angle") is not None:
+            limits.isMinimumValueEnabled = True
+            limits.minimumValue = math.radians(params["min_angle"])
+        if params.get("max_angle") is not None:
+            limits.isMaximumValueEnabled = True
+            limits.maximumValue = math.radians(params["max_angle"])
+
+    if hasattr(motion, "slideLimits"):
+        limits = motion.slideLimits
+        if params.get("min_distance") is not None:
+            limits.isMinimumValueEnabled = True
+            limits.minimumValue = params["min_distance"]
+        if params.get("max_distance") is not None:
+            limits.isMaximumValueEnabled = True
+            limits.maximumValue = params["max_distance"]
 
     return {"joint_name": joint.name, "joint_type": joint_type_str}
 
