@@ -975,12 +975,30 @@ def _handle_create_joint(params, design):
     axis_str = params.get("axis", "Z").upper()
 
     # Create as-built joint (components stay in place)
-    # geometry is required: None for rigid joints, origin point for others
+    # geometry is required: None for rigid joints, best cylindrical face for others
     asBuiltJoints = rootComp.asBuiltJoints
     if joint_type_str == "rigid":
         geo = None
     else:
-        geo = adsk.fusion.JointGeometry.createByPoint(rootComp.originConstructionPoint)
+        # Try to find a cylindrical face on child component for proper joint placement
+        geo = None
+        if occ2.bRepBodies.count > 0:
+            body = occ2.bRepBodies.item(0)
+            for fi in range(body.faces.count):
+                face = body.faces.item(fi)
+                if face.geometry and face.geometry.surfaceType == 1:  # Cylinder
+                    try:
+                        geo = adsk.fusion.JointGeometry.createByCylinderOrConeFace(
+                            face,
+                            adsk.fusion.JointQuadrantAngleTypes.StartJointQuadrantAngleType,
+                            adsk.fusion.JointKeyPointTypes.MiddleKeyPoint,
+                        )
+                        break
+                    except:
+                        continue
+        # Fallback to origin construction point
+        if geo is None:
+            geo = adsk.fusion.JointGeometry.createByPoint(rootComp.originConstructionPoint)
     abInput = asBuiltJoints.createInput(occ1, occ2, geo)
 
     JD = adsk.fusion.JointDirections
